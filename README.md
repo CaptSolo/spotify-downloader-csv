@@ -22,7 +22,7 @@
 
 *This version (spotDL v4 - CSV) is an experiment that removes Spotify API calls and retrieves song metadata from a CSV file instead.*
 
-*See [[USAGE.mg]] for more information about using it.*
+*See [USAGE.md](USAGE.md) for more information about using it.*
 
 ___________________________________________________
 
