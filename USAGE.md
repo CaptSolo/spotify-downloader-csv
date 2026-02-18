@@ -63,6 +63,9 @@ uv run spotdl download playlist.csv --cookie-file cookies.txt --playlist-numberi
 
 # Multiple threads for faster downloads
 uv run spotdl download playlist.csv --cookie-file cookies.txt --threads 4
+
+# Add delay between downloads to avoid rate limiting (seconds)
+uv run spotdl download playlist.csv --cookie-file cookies.txt --delay 2.5
 ```
 
 ### Full Example
@@ -73,6 +76,7 @@ uv run spotdl download playlist.csv \
     --format opus \
     --bitrate disable \
     --threads 4 \
+    --delay 1.0 \
     --output "output/{artist} - {title}.{output-ext}"
 ```
 
