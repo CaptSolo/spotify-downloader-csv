@@ -7,9 +7,9 @@
 
 <div align="center">
 
-# spotDL v4
+# spotDL v4 - CSV
 
-**spotDL** finds songs from Spotify playlists on YouTube and downloads them - along with album art, lyrics and metadata.
+**spotDL - CSV** finds songs from Spotify playlists on YouTube and downloads them - along with album art, lyrics and metadata - using Spotify metadata from a CSV file.
 
 [![MIT License](https://img.shields.io/github/license/spotdl/spotify-downloader?color=44CC11&style=flat-square)](https://github.com/spotDL/spotify-downloader/blob/master/LICENSE)
 [![PyPI version](https://img.shields.io/pypi/pyversions/spotDL?color=%2344CC11&style=flat-square)](https://pypi.org/project/spotdl/)
@@ -20,9 +20,12 @@
 > spotDL: The fastest, easiest and most accurate command-line music downloader.
 </div>
 
-______________________________________________________________________
-**[Read the documentation on ReadTheDocs!](https://spotdl.readthedocs.io)**
-______________________________________________________________________
+*This version (spotDL v4 - CSV) is an experiment that removes Spotify API calls and retrieves song metadata from a CSV file instead.*
+
+*See [[USAGE.mg]] for more information about using it.*
+
+___________________________________________________
+
 
 ## Installation
 
