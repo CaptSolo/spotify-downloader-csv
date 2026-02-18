@@ -203,8 +203,8 @@ def embed_metadata(
     )
     audio_file[tag_preset["title"]] = song.name
     audio_file[tag_preset["date"]] = song.date
-    audio_file[tag_preset["encodedby"]] = song.publisher
-
+    if song.publisher:
+        audio_file[tag_preset["encodedby"]] = song.publisher
     # Embed metadata that isn't always present
     album_name = song.album_name
     if album_name:
@@ -226,7 +226,8 @@ def embed_metadata(
         audio_file["tracktotal"] = str(song.tracks_count)
         audio_file["tracknumber"] = str(song.track_number)
         audio_file["woas"] = song.url
-        audio_file["isrc"] = song.isrc
+        if song.isrc:
+            audio_file["isrc"] = song.isrc
     elif encoding == "m4a":
         audio_file[tag_preset["discnumber"]] = [(song.disc_number, song.disc_count)]
         audio_file[tag_preset["tracknumber"]] = [(song.track_number, song.tracks_count)]
@@ -235,8 +236,8 @@ def embed_metadata(
     elif encoding == "mp3":
         audio_file["tracknumber"] = f"{str(song.track_number)}/{str(song.tracks_count)}"
         audio_file["discnumber"] = f"{str(song.disc_number)}/{str(song.disc_count)}"
-        audio_file["isrc"] = song.isrc
-
+        if song.isrc:
+            audio_file["isrc"] = song.isrc
     # Mp3 specific encoding
     if encoding == "mp3":
         if id3_separator != "/":

@@ -103,7 +103,7 @@ class Singleton(type):
                 client_id=client_id,
                 client_secret=client_secret,
                 redirect_uri="http://127.0.0.1:9900/",
-                scope="user-library-read,user-follow-read,playlist-read-private",
+                scope="user-library-read,user-follow-read,playlist-read-private,playlist-read-collaborative",
                 cache_handler=cache_handler,
                 open_browser=not headless,
             )
@@ -165,6 +165,71 @@ class SpotifyClient(Spotify, metaclass=Singleton):
             with open(cache_file_loc, "w", encoding="utf-8") as cache_file:
                 json.dump(self.cache, cache_file)
 
+    def playlist_items(  # type: ignore[override]
+        self,
+        playlist_id,
+        fields=None,
+        limit=100,
+        offset=0,
+        market=None,
+        additional_types=("track", "episode"),
+    ):
+        """Get items of a playlist.
+
+        Spotify deprecated the legacy endpoint `GET /playlists/{id}/tracks` in early 2026 and
+        introduced `GET /playlists/{id}/items`. Newer Spotify API behavior may return 403/404
+        for the legacy endpoint, even when the playlist is otherwise accessible.
+
+        This override prefers the new `/items` endpoint and falls back to Spotipy's
+        implementation if needed.
+        """
+        plid = self._get_id("playlist", playlist_id)
+
+        # Spotipy accepts additional_types as list/tuple, but the request param is a comma-separated string.
+        if isinstance(additional_types, (list, tuple, set)):
+            additional_types_param = ",".join(additional_types)
+        else:
+            additional_types_param = additional_types
+
+        try:
+            return self._get(
+                f"playlists/{plid}/items",
+                limit=limit,
+                offset=offset,
+                fields=fields,
+                market=market,
+                additional_types=additional_types_param,
+            )
+        except Exception:
+            # Fall back to spotipy's (legacy) playlist_items which may still work
+            return super().playlist_items(
+                playlist_id,
+                fields=fields,
+                limit=limit,
+                offset=offset,
+                market=market,
+                additional_types=additional_types,
+            )
+
+    def playlist(  # type: ignore[override]
+        self,
+        playlist_id,
+        fields=None,
+        market=None,
+        additional_types=None,
+    ):
+        """Get full details of a playlist.
+
+        As of Spotify Web API changes in early 2026, some clients saw 404/403 issues when passing
+        `additional_types` to the playlist metadata endpoint. The playlist items are retrieved via
+        `playlist_items` (which uses the newer `/items` endpoint), so we intentionally omit
+        `additional_types` here.
+        """
+
+        plid = self._get_id("playlist", playlist_id)
+        # Intentionally do NOT pass additional_types
+        return self._get(f"playlists/{plid}", fields=fields, market=market)
+
     def _get(self, url, args=None, payload=None, **kwargs):
         """
         Overrides the get method of the SpotifyClient.
@@ -220,7 +285,7 @@ def save_spotify_cache(cache: Dict[str, Optional[Dict]]):
     cache = {
         key: value
         for key, value in cache.items()
-        if value is not None and "tracks/" in key
+        if value is not None and ("tracks/" in key or "playlists/" in key and "/items" in key)
     }
 
     with open(cache_file_loc, "w", encoding="utf-8") as cache_file:
