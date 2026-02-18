@@ -1,8 +1,10 @@
 # Usage Guide
 
-This is a modified version of spotDL that uses CSV playlist files (exported from [Chosic](https://www.chosic.com/)) instead of the Spotify API. Songs are matched on YouTube Music using ISRC codes from the CSV, and YouTube video thumbnails are used as album art.
+This is a modified version of spotDL that uses CSV playlist files (e.g. exported from [Chosic](https://www.chosic.com/)) instead of the Spotify API. Songs are matched on YouTube Music using ISRC codes from the CSV, and YouTube video thumbnails are used as album art.
 
 ## Prerequisites
+
+Installation commands in this guide are written for macOS (using `brew install`). For other operating systems, use the relevant install commands for installing prerequisite software.
 
 - **Python 3.13+**
 - **FFmpeg** -- install via `brew install ffmpeg` or run `spotdl --download-ffmpeg`
