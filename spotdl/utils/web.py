@@ -31,14 +31,11 @@ from uvicorn import Server
 from spotdl._version import __version__
 from spotdl.download.downloader import Downloader
 from spotdl.download.progress_handler import ProgressHandler, SongTracker
-from spotdl.types.album import Album
-from spotdl.types.artist import Artist
 from spotdl.types.options import (
     DownloaderOptionalOptions,
     DownloaderOptions,
     WebOptions,
 )
-from spotdl.types.playlist import Playlist
 from spotdl.types.song import Song
 from spotdl.utils.arguments import create_parser
 from spotdl.utils.config import (
@@ -47,7 +44,6 @@ from spotdl.utils.config import (
     get_spotdl_path,
 )
 from spotdl.utils.github import RateLimitError, get_latest_version, get_status
-from spotdl.utils.search import get_search_results
 
 __all__ = [
     "ALLOWED_ORIGINS",
@@ -289,45 +285,29 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                 await app_state.server.shutdown()
 
 
-# Deprecated
+# Deprecated - Spotify API removed
 @router.get("/api/song/url", response_model=None)
-def song_from_url(url: str) -> Song:
+def song_from_url(url: str):
     """
-    Search for a song on spotify using url.
-
-    ### Arguments
-    - url: The url to search.
-
-    ### Returns
-    - returns the first result as a Song object.
+    Formerly searched for a song on Spotify. Now returns HTTP 410.
     """
 
-    return Song.from_url(url)
+    raise HTTPException(
+        status_code=410,
+        detail="Spotify API has been removed. Use CSV files instead.",
+    )
 
 
 @router.get("/api/url", response_model=None)
-def songs_from_url(url: str) -> List[Song]:
+def songs_from_url(url: str):
     """
-    Search for a song, playlist, artist or album on spotify using url.
-
-    ### Arguments
-    - url: The url to search.
-
-    ### Returns
-    - returns a list with Song objects to be downloaded.
+    Formerly searched Spotify by URL. Now returns HTTP 410.
     """
 
-    if "playlist" in url:
-        playlist = Playlist.from_url(url)
-        return list(map(Song.from_url, playlist.urls))
-    if "album" in url:
-        album = Album.from_url(url)
-        return list(map(Song.from_url, album.urls))
-    if "artist" in url:
-        artist = Artist.from_url(url)
-        return list(map(Song.from_url, artist.urls))
-
-    return [Song.from_url(url)]
+    raise HTTPException(
+        status_code=410,
+        detail="Spotify API has been removed. Use CSV files instead.",
+    )
 
 
 @router.get("/api/version", response_model=None)
@@ -372,7 +352,10 @@ def query_search(query: str) -> List[Song]:
     - returns a list of Song objects.
     """
 
-    return get_search_results(query)
+    raise HTTPException(
+        status_code=410,
+        detail="Spotify search has been removed. Use CSV files instead.",
+    )
 
 
 @router.post("/api/download/url")
@@ -404,8 +387,8 @@ async def download_url(
     )
 
     try:
-        # Fetch song metadata
-        song = Song.from_url(url)
+        # Create a minimal song from URL
+        song = Song.from_missing_data(url=url)
 
         # Download Song
         _, path = await client.downloader.pool_download(song)

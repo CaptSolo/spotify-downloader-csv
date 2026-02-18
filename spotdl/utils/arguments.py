@@ -70,20 +70,11 @@ def parse_main_options(parser: _ArgumentGroup):
         nargs="+",
         type=str,
         help=(
-            "N|Spotify/YouTube URL for a song/playlist/album/artist/etc. to download.\n\n"
-            "For album/playlist/artist searching, include 'album:', 'playlist:', 'artist:' \n"
-            "(ie. 'album:the album name' you can mix these options to get more accurate results)"
-            ".\n\n"
-            "To download liked songs use 'saved' as the query, to download all user playlists\n"
-            "use 'all-user-playlists, to download playlists that the user has created\n"
-            "use 'all-saved-playlists', to download all user liked playlists\n"
-            "use 'all-user-followed-artists', to download all user saved albums "
-            "use 'all-user-saved-albums' \n\n"
-            "For manual audio matching, you can use the format 'YouTubeURL|SpotifyURL'\n"
-            "You can only use album/playlist/tracks urls when "
-            "downloading/matching youtube urls.\n"
-            "When using youtube url without spotify url, "
-            "you won't be able to use `--fetch-albums` option.\n\n"
+            "N|CSV file path (Chosic export), .spotdl file, or YouTube URL.\n\n"
+            "Examples:\n"
+            "  spotdl download playlist.csv\n"
+            "  spotdl download saved.spotdl\n"
+            "  spotdl download https://music.youtube.com/watch?v=...\n\n"
         ),
     )
 
@@ -175,89 +166,6 @@ def parse_main_options(parser: _ArgumentGroup):
         action="store_const",
         const=True,
         help="Use only verified results. (Not all providers support this)",
-    )
-
-
-def parse_spotify_options(parser: _ArgumentGroup):
-    """
-    Parse spotify options from the command line.
-
-    ### Arguments
-    - parser: The argument parser to add the options to.
-    """
-
-    # Add login argument
-    parser.add_argument(
-        "--user-auth",
-        action="store_const",
-        const=True,
-        help="Login to Spotify using OAuth.",
-    )
-
-    # Add client id argument
-    parser.add_argument(
-        "--client-id",
-        help="The client id to use when logging in to Spotify.",
-        type=str,
-    )
-
-    # Add client secret argument
-    parser.add_argument(
-        "--client-secret",
-        help="The client secret to use when logging in to Spotify.",
-        type=str,
-    )
-
-    # Add auth token argument
-    parser.add_argument(
-        "--auth-token",
-        help="The authorization token to use directly to log in to Spotify.",
-        type=str,
-    )
-
-    # Add cache path argument
-    parser.add_argument(
-        "--cache-path",
-        type=str,
-        help="The path where spotipy cache file will be stored.",
-    )
-
-    # Add no cache argument
-    parser.add_argument(
-        "--no-cache",
-        action="store_const",
-        const=True,
-        help="Disable caching (both requests and token).",
-    )
-
-    # Add max retries argument
-    parser.add_argument(
-        "--max-retries",
-        type=int,
-        help="The maximum number of retries to perform when getting metadata.",
-    )
-
-    # Add headless argument
-    parser.add_argument(
-        "--headless",
-        action="store_const",
-        const=True,
-        help="Run in headless mode.",
-    )
-
-    # Add use cache file argument
-    parser.add_argument(
-        "--use-cache-file",
-        action="store_const",
-        const=True,
-        help=(
-            "Use the cache file to get metadata. "
-            "It's located under C:\\Users\\user\\.spotdl\\.spotify_cache "
-            "or ~/.spotdl/.spotify_cache under linux. "
-            "It only caches tracks and "
-            "gets updated whenever spotDL gets metadata from Spotify. "
-            "(It may provide outdated metadata use with caution)"
-        ),
     )
 
 
@@ -627,6 +535,13 @@ def parse_output_options(parser: _ArgumentGroup):
         help="Remove lrc files when using sync operation when downloading songs",
     )
 
+    # Delay between downloads
+    parser.add_argument(
+        "--delay",
+        type=float,
+        help="Delay in seconds between song downloads to avoid rate limiting.",
+    )
+
 
 def parse_web_options(parser: _ArgumentGroup):
     """
@@ -830,10 +745,6 @@ def create_parser() -> ArgumentParser:
     # Parse main options
     main_options = parser.add_argument_group("Main options")
     parse_main_options(main_options)
-
-    # Parse spotify options
-    spotify_options = parser.add_argument_group("Spotify options")
-    parse_spotify_options(spotify_options)
 
     # Parse ffmpeg options
     ffmpeg_options = parser.add_argument_group("FFmpeg options")

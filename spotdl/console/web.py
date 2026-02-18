@@ -48,9 +48,6 @@ def web(web_settings: WebOptions, downloader_settings: DownloaderOptions):
     uvicorn_logger = logging.getLogger("uvicorn")
     uvicorn_logger.propagate = False
 
-    spotipy_logger = logging.getLogger("spotipy")
-    spotipy_logger.setLevel(logging.NOTSET)
-
     # Initialize the web server settings
     app_state.web_settings = web_settings
     app_state.logger = uvicorn_logger

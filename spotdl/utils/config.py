@@ -12,12 +12,7 @@ from argparse import Namespace
 from pathlib import Path
 from typing import Any, Dict, Tuple, Union
 
-from spotdl.types.options import (
-    DownloaderOptions,
-    SpotDLOptions,
-    SpotifyOptions,
-    WebOptions,
-)
+from spotdl.types.options import DownloaderOptions, SpotDLOptions, WebOptions
 
 __all__ = [
     "ConfigError",
@@ -30,7 +25,6 @@ __all__ = [
     "get_config",
     "create_settings_type",
     "create_settings",
-    "SPOTIFY_OPTIONS",
     "DOWNLOADER_OPTIONS",
     "WEB_OPTIONS",
     "DEFAULT_CONFIG",
@@ -104,17 +98,6 @@ def get_cache_path() -> Path:
     """
 
     return get_spotdl_path() / ".spotipy"
-
-
-def get_spotify_cache_path() -> Path:
-    """
-    Get the path to the spotify cache folder.
-
-    ### Returns
-    - The path to the spotipy cache file.
-    """
-
-    return get_spotdl_path() / ".spotify_cache"
 
 
 def get_temp_path() -> Path:
@@ -196,7 +179,7 @@ def get_config() -> Dict[str, Any]:
 def create_settings_type(
     arguments: Namespace,
     config: Dict[str, Any],
-    default: Union[SpotifyOptions, DownloaderOptions, WebOptions],
+    default: Union[DownloaderOptions, WebOptions],
 ) -> Dict[str, Any]:
     """
     Create settings dict
@@ -228,16 +211,15 @@ def create_settings_type(
 
 def create_settings(
     arguments: Namespace,
-) -> Tuple[SpotifyOptions, DownloaderOptions, WebOptions]:
+) -> Tuple[DownloaderOptions, WebOptions]:
     """
-    Create settings dicts for Spotify, Downloader and Web
+    Create settings dicts for Downloader and Web
     based on the arguments and config file (if enabled)
 
     ### Arguments
     - arguments: Namespace from argparse
 
     ### Returns
-    - spotify_options: SpotifyOptions
     - downloader_options: DownloaderOptions
     - web_options: WebOptions
     """
@@ -254,15 +236,12 @@ def create_settings(
     # Type: ignore because of the issues below
     # https://github.com/python/mypy/issues/8890
     # https://github.com/python/mypy/issues/5382
-    spotify_options = SpotifyOptions(
-        **create_settings_type(arguments, config, SPOTIFY_OPTIONS)  # type: ignore
-    )
     downloader_options = DownloaderOptions(
         **create_settings_type(arguments, config, DOWNLOADER_OPTIONS)  # type: ignore
     )
     web_options = WebOptions(**create_settings_type(arguments, config, WEB_OPTIONS))  # type: ignore
 
-    return spotify_options, downloader_options, web_options
+    return downloader_options, web_options
 
 
 def modernize_settings(options: DownloaderOptions):
@@ -303,18 +282,6 @@ class GlobalConfig:
 
         return cls.parameters.get(key, None)
 
-
-SPOTIFY_OPTIONS: SpotifyOptions = {
-    "client_id": "5f573c9620494bae87890c0f08a60293",
-    "client_secret": "212476d9b0f3472eaa762d90b19b0ba8",
-    "auth_token": None,
-    "user_auth": False,
-    "headless": False,
-    "cache_path": str(get_cache_path()),
-    "no_cache": False,
-    "max_retries": 3,
-    "use_cache_file": False,
-}
 
 DOWNLOADER_OPTIONS: DownloaderOptions = {
     "audio_providers": ["youtube-music"],
@@ -365,6 +332,7 @@ DOWNLOADER_OPTIONS: DownloaderOptions = {
     "create_skip_file": False,
     "respect_skip_file": False,
     "sync_remove_lrc": False,
+    "delay": None,
 }
 
 WEB_OPTIONS: WebOptions = {
@@ -385,7 +353,6 @@ WEB_OPTIONS: WebOptions = {
 
 # Type: ignore because of the issues above
 DEFAULT_CONFIG: SpotDLOptions = {
-    **SPOTIFY_OPTIONS,  # type: ignore
     **DOWNLOADER_OPTIONS,  # type: ignore
     **WEB_OPTIONS,  # type: ignore
 }

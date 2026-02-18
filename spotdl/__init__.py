@@ -15,7 +15,6 @@ from spotdl.download.downloader import Downloader
 from spotdl.types.options import DownloaderOptionalOptions, DownloaderOptions
 from spotdl.types.song import Song
 from spotdl.utils.search import parse_query
-from spotdl.utils.spotify import SpotifyClient
 
 __all__ = ["Spotdl", "console_entry_point", "__version__"]
 
@@ -29,10 +28,9 @@ class Spotdl:
     ```python
     from spotdl import Spotdl
 
-    spotdl = Spotdl(client_id='your-client-id', client_secret='your-client-secret')
+    spotdl = Spotdl()
 
-    songs = spotdl.search(['joji - test drive',
-        'https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT'])
+    songs = spotdl.search(['playlist.csv'])
 
     results = spotdl.download_songs(songs)
     song, path = spotdl.download(songs[0])
@@ -41,12 +39,6 @@ class Spotdl:
 
     def __init__(
         self,
-        client_id: str,
-        client_secret: str,
-        user_auth: bool = False,
-        cache_path: Optional[str] = None,
-        no_cache: bool = False,
-        headless: bool = False,
         downloader_settings: Optional[
             Union[DownloaderOptionalOptions, DownloaderOptions]
         ] = None,
@@ -56,28 +48,12 @@ class Spotdl:
         Initialize the Spotdl class
 
         ### Arguments
-        - client_id: Spotify client id
-        - client_secret: Spotify client secret
-        - user_auth: If true, user will be prompted to authenticate
-        - cache_path: Path to cache directory
-        - no_cache: If true, no cache will be used
-        - headless: If true, no browser will be opened
         - downloader_settings: Settings for the downloader
         - loop: Event loop to use
         """
 
         if downloader_settings is None:
             downloader_settings = {}
-
-        # Initialize spotify client
-        SpotifyClient.init(
-            client_id=client_id,
-            client_secret=client_secret,
-            user_auth=user_auth,
-            cache_path=cache_path,
-            no_cache=no_cache,
-            headless=headless,
-        )
 
         # Initialize downloader
         self.downloader = Downloader(
@@ -96,7 +72,7 @@ class Spotdl:
         - A list of Song objects
 
         ### Notes
-        - query can be a list of song titles, urls, uris
+        - query can be a list of CSV files, .spotdl files, or YouTube URLs
         """
 
         return parse_query(

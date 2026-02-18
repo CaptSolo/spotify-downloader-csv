@@ -9,31 +9,13 @@ from typing import List, Optional, Union
 from typing_extensions import TypedDict
 
 __all__ = [
-    "SpotifyOptions",
     "DownloaderOptions",
     "WebOptions",
     "SpotDLOptions",
-    "SpotifyOptionalOptions",
     "DownloaderOptionalOptions",
     "WebOptionalOptions",
     "SpotDLOptionalOptions",
 ]
-
-
-class SpotifyOptions(TypedDict):
-    """
-    Options used for initializing the Spotify client.
-    """
-
-    client_id: str
-    client_secret: str
-    auth_token: Optional[str]
-    user_auth: bool
-    headless: bool
-    cache_path: str
-    no_cache: bool
-    max_retries: int
-    use_cache_file: bool
 
 
 class DownloaderOptions(TypedDict):
@@ -89,6 +71,7 @@ class DownloaderOptions(TypedDict):
     create_skip_file: Optional[bool]
     respect_skip_file: Optional[bool]
     sync_remove_lrc: Optional[bool]
+    delay: Optional[float]
 
 
 class WebOptions(TypedDict):
@@ -111,26 +94,10 @@ class WebOptions(TypedDict):
     web_gui_location: Optional[str]
 
 
-class SpotDLOptions(SpotifyOptions, DownloaderOptions, WebOptions):
+class SpotDLOptions(DownloaderOptions, WebOptions):
     """
     Options used for initializing the SpotDL client.
     """
-
-
-class SpotifyOptionalOptions(TypedDict, total=False):
-    """
-    Options used for initializing the Spotify client.
-    """
-
-    client_id: str
-    client_secret: str
-    auth_token: Optional[str]
-    user_auth: bool
-    headless: bool
-    cache_path: str
-    no_cache: bool
-    max_retries: int
-    use_cache_file: bool
 
 
 class DownloaderOptionalOptions(TypedDict, total=False):
@@ -185,6 +152,7 @@ class DownloaderOptionalOptions(TypedDict, total=False):
     create_skip_file: Optional[bool]
     respect_skip_file: Optional[bool]
     sync_remove_lrc: Optional[bool]
+    delay: Optional[float]
 
 
 class WebOptionalOptions(TypedDict, total=False):
@@ -207,9 +175,7 @@ class WebOptionalOptions(TypedDict, total=False):
     web_gui_location: Optional[str]
 
 
-class SpotDLOptionalOptions(
-    SpotifyOptionalOptions, DownloaderOptionalOptions, WebOptionalOptions
-):
+class SpotDLOptionalOptions(DownloaderOptionalOptions, WebOptionalOptions):
     """
     Options used for initializing the SpotDL client.
     This type is modified to not require all the fields.

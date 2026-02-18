@@ -43,7 +43,7 @@ from spotdl.utils.formatter import create_file_name
 from spotdl.utils.lrc import generate_lrc
 from spotdl.utils.m3u import gen_m3u_files
 from spotdl.utils.metadata import MetadataError, embed_metadata
-from spotdl.utils.search import gather_known_songs, reinit_song, songs_from_albums
+from spotdl.utils.search import gather_known_songs, reinit_song
 
 __all__ = [
     "AUDIO_PROVIDERS",
@@ -268,21 +268,6 @@ class Downloader:
         - list of tuples with the song and the path to the downloaded file if successful.
         """
 
-        if self.settings["fetch_albums"]:
-            albums = set(song.album_id for song in songs if song.album_id is not None)
-            logger.info(
-                "Fetching %d album%s", len(albums), "s" if len(albums) > 1 else ""
-            )
-
-            songs.extend(songs_from_albums(list(albums)))
-
-            # Remove duplicates
-            return_obj = {}
-            for song in songs:
-                return_obj[song.url] = song
-
-            songs = list(return_obj.values())
-
         logger.debug("Downloading %d songs", len(songs))
 
         if self.settings["archive"]:
@@ -372,6 +357,9 @@ class Downloader:
         # tasks that cannot acquire semaphore will wait here until it's free
         # only certain amount of tasks can acquire the semaphore at the same time
         async with self.semaphore:
+            if self.settings.get("delay"):
+                await asyncio.sleep(self.settings["delay"])
+
             return await self.loop.run_in_executor(None, self.search_and_download, song)
 
     def search(self, song: Song) -> str:
@@ -458,7 +446,6 @@ class Downloader:
                     song.disc_count,
                     song.tracks_count,
                     song.track_number,
-                    song.album_id,
                     song.album_artist,
                 ]
             )
@@ -678,6 +665,28 @@ class Downloader:
             download_info = audio_downloader.get_download_metadata(
                 download_url, download=True
             )
+
+            # Use YouTube thumbnail as cover art if song has no cover_url
+            if song.cover_url is None and download_info is not None:
+                thumbnails = download_info.get("thumbnails", [])
+                if thumbnails:
+                    # Pick the highest resolution non-webp thumbnail
+                    best = None
+                    for thumb in sorted(
+                        thumbnails,
+                        key=lambda t: t.get("preference", 0),
+                        reverse=True,
+                    ):
+                        url_str = thumb.get("url", "")
+                        if ".webp" not in url_str:
+                            best = url_str
+                            break
+                    if best is None:
+                        best = thumbnails[-1].get("url")
+                    if best:
+                        song.cover_url = best
+                elif download_info.get("thumbnail"):
+                    song.cover_url = download_info["thumbnail"]
 
             temp_file = Path(
                 temp_folder / f"{download_info['id']}.{download_info['ext']}"

@@ -22,7 +22,6 @@ from spotdl.utils.console import ACTIONS, generate_initial_config, is_executable
 from spotdl.utils.downloader import check_ytmusic_connection
 from spotdl.utils.ffmpeg import FFmpegError, download_ffmpeg, is_ffmpeg_installed
 from spotdl.utils.logging import init_logging
-from spotdl.utils.spotify import SpotifyClient, SpotifyError, save_spotify_cache
 
 __all__ = ["console_entry_point", "OPERATIONS"]
 
@@ -78,7 +77,7 @@ def entry_point():
     arguments = parse_arguments()
 
     # Create settings dicts
-    spotify_settings, downloader_settings, web_settings = create_settings(arguments)
+    downloader_settings, web_settings = create_settings(arguments)
 
     init_logging(downloader_settings["log_level"], downloader_settings["log_format"])
 
@@ -103,10 +102,6 @@ def entry_point():
                 "Please use a VPN, change youtube-music to piped, or use other audio providers"
             )
 
-    # Initialize spotify client
-    SpotifyClient.init(**spotify_settings)
-    spotify_client = SpotifyClient()
-
     # If the application is frozen start web ui
     # or if the operation is `web`
     if is_executable() or arguments.operation == "web":
@@ -127,25 +122,11 @@ def entry_point():
     ):
         raise DownloaderError("Save file has to end with .spotdl")
 
-    # Check if the user is logged in
-    if (
-        arguments.query
-        and "saved" in arguments.query
-        and not spotify_settings["user_auth"]
-    ):
-        raise SpotifyError(
-            "You must be logged in to use the saved query. "
-            "Log in by adding the --user-auth flag"
-        )
-
     # Initialize the downloader
     # for download, load and preload operations
     downloader = Downloader(downloader_settings)
 
     def graceful_exit(_signal, _frame):
-        if spotify_settings["use_cache_file"]:
-            save_spotify_cache(spotify_client.cache)
-
         downloader.progress_handler.close()
         sys.exit(0)
 
@@ -180,9 +161,6 @@ def entry_point():
 
     end_time = time.perf_counter()
     logger.debug("Took %d seconds", end_time - start_time)
-
-    if spotify_settings["use_cache_file"]:
-        save_spotify_cache(spotify_client.cache)
 
     downloader.progress_handler.close()
 

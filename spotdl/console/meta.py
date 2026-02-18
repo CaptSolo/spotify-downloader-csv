@@ -12,7 +12,7 @@ from spotdl.types.song import Song
 from spotdl.utils.ffmpeg import FFMPEG_FORMATS
 from spotdl.utils.lrc import generate_lrc
 from spotdl.utils.metadata import embed_metadata, get_file_metadata
-from spotdl.utils.search import QueryError, get_search_results, parse_query, reinit_song
+from spotdl.utils.search import QueryError, parse_query, reinit_song
 
 __all__ = ["meta"]
 
@@ -102,22 +102,20 @@ def meta(query: List[str], downloader: Downloader) -> None:
         ):
             # Song does not have metadata, or it is missing some fields
             # or we are forcing update of metadata
-            # so we search for it
-            logger.debug("Searching metadata for %s", file.name)
-            search_results = get_search_results(file.stem)
-            if not search_results:
-                logger.error("Could not find metadata for %s", file.name)
-                return None
+            logger.error(
+                "Could not find metadata for %s. "
+                "Spotify search is no longer available.",
+                file.name,
+            )
+            return None
 
-            song = search_results[0]
-        else:
-            # Song has metadata, so we use it to reinitialize the song object
-            # and fill in the missing metadata
-            try:
-                song = reinit_song(Song.from_missing_data(**song_meta))
-            except QueryError:
-                logger.error("Could not find metadata for %s", file.name)
-                return None
+        # Song has metadata, so we use it to reinitialize the song object
+        # and fill in the missing metadata
+        try:
+            song = reinit_song(Song.from_missing_data(**song_meta))
+        except QueryError:
+            logger.error("Could not find metadata for %s", file.name)
+            return None
 
         # Check if the song has lyric
         # if not use downloader to find lyrics
