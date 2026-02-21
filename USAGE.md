@@ -6,7 +6,7 @@ This is a modified version of spotDL that uses CSV playlist files (e.g. exported
 
 Installation commands in this guide are written for macOS (using `brew install`). For other operating systems, use the relevant install commands for installing prerequisite software.
 
-- **Python 3.13+**
+- **Python 3.10+**
 - **FFmpeg** -- install via `brew install ffmpeg` or run `spotdl --download-ffmpeg`
 - **Deno** (JavaScript runtime, required by yt-dlp) -- install via `brew install deno`
 - **YouTube cookies file** -- required to download from YouTube Music (see below)
@@ -18,6 +18,8 @@ uv sync
 ```
 
 ## Exporting a Spotify Playlist as CSV
+
+This section describes how to export a Spotify playlist as CSV using Chosic. CSV files exported using Exportify may also work.
 
 1. Go to [Chosic Spotify Playlist Analyzer](https://www.chosic.com/spotify-playlist-analyzer/)
 2. Paste your Spotify playlist URL and click Analyze
@@ -77,7 +79,6 @@ uv run spotdl download playlist.csv \
     --cookie-file cookies.txt \
     --format opus \
     --bitrate disable \
-    --threads 4 \
     --delay 1.0 \
     --output "output/{artist} - {title}.{output-ext}"
 ```
