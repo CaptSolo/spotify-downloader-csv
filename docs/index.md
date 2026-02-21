@@ -3,32 +3,40 @@
 
 <!---
 !!! IF EDITING THE README, ENSURE TO COPY THE WHOLE FILE TO index.md in `/docs/` AND REMOVE THE REFERENCES TO ReadTheDocs THERE.
-!!! ENSURE TO UPDATE LINKS AND REMOVE HTML FORMATTING
 --->
 
-# spotDL v4
+<div align="center">
 
-**spotDL** finds songs from Spotify playlists on YouTube and downloads them - along with album art, lyrics and metadata.
+# spotDL v4 - CSV
+
+**spotDL - CSV** finds songs from Spotify playlists on YouTube and downloads them - along with album art, lyrics and metadata - using Spotify metadata from a CSV file.
 
 [![MIT License](https://img.shields.io/github/license/spotdl/spotify-downloader?color=44CC11&style=flat-square)](https://github.com/spotDL/spotify-downloader/blob/master/LICENSE)
 [![Python version](https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square)](https://www.python.org/)
-![Contributors](https://img.shields.io/github/contributors/spotDL/spotify-downloader?style=flat-square)
 [![Discord](https://img.shields.io/discord/771628785447337985?label=discord&logo=discord&style=flat-square)](https://discord.gg/xCa23pwJWY)
+</div>
 
-> spotDL: The fastest, easiest and most accurate command-line music downloader.
+___________________________________________________
+
+*This version (spotDL v4 - CSV) is an experiment that removes Spotify API calls and retrieves song metadata from a CSV file instead.*
+
+*See [USAGE.md](USAGE.md) for more information about using it.*
+
+___________________________________________________
 
 
 ## Installation
 
-Refer to our [Installation Guide](installation.md) for more details.
+Refer to the [Installation Guide](docs/installation.md) for more details.
 
 ### Install from GitHub (Recommended Method)
 
-> This package is not available on PyPI. Install directly from GitHub.
+Install this package from GitHub:
 
 ```bash
-git clone https://github.com/spotDL/spotify-downloader && cd spotify-downloader
 pip install uv
+
+git clone https://github.com/CaptSolo/spotify-downloader-csv/ && cd spotify-downloader-csv
 uv sync
 ```
 
@@ -38,37 +46,6 @@ To update, pull the latest changes and re-sync:
 git pull
 uv sync
 ```
-
-### Other options
-
-- Prebuilt executable
-    - Download the latest version from the [Releases Tab](https://github.com/spotDL/spotify-downloader/releases).
-- On Termux
-    - `curl -L https://raw.githubusercontent.com/spotDL/spotify-downloader/master/scripts/termux.sh | sh`
-- Docker
-    - Build image:
-
-      ```bash
-      docker build -t spotdl .
-      ```
-
-    - Launch container with spotDL parameters (see section below). You need to create mapped
-      volume to access song files
-
-      ```bash
-      docker run --rm -v $(pwd):/music spotdl download [trackUrl]
-      ```
-
-- Build standalone executable
-
-    ```bash
-    git clone https://github.com/spotDL/spotify-downloader && cd spotify-downloader
-    pip install uv
-    uv sync
-    uv run scripts/build.py
-    ```
-
-    An executable is created in `spotify-downloader/dist/`.
 
 ### Installing FFmpeg
 
@@ -104,10 +81,38 @@ spotdl [operation] [options] QUERY
 
 There are different **operations** spotDL can perform. The _default_ is `download`, which simply downloads the songs from YouTube and embeds metadata.
 
+`spotdl download [CSV_file]` 
+
 The **query** for spotDL is usually a list of Spotify URLs, but for some operations like **sync**, only a single link or file is required.
 For a list of all **options** use ```spotdl -h```
 
-### Refer to [Usage](usage.md) for more info.
+<details>
+<summary style="font-size:1em"><strong>Supported operations</strong></summary>
+
+*This part of documentation may need updating because `spotDL v4 CSV` does not use the Spotify API (it uses metadata from a CSV file instead) and thus may not perform all the same operations that can be performed using the original spotDL.*
+
+- `save`: Saves only the metadata from Spotify without downloading anything.
+    - Usage:
+        `spotdl save [query] --save-file {filename}.spotdl`
+
+- `web`: Starts a web interface instead of using the command line. However, it has limited features and only supports downloading individual songs.
+
+- `url`: Get user-friendly URL for each song from the query.
+    - Usage:
+        `spotdl url [query]`
+
+- `sync`: Updates directories. Compares the directory with the current state of the playlist. Newly added songs will be downloaded and removed songs will be deleted. No other songs will be downloaded and no other files will be deleted.
+
+    - Usage:
+        `spotdl sync [query] --save-file {filename}.spotdl`
+
+        This creates a new **sync** file. To update the directory in the future, use:
+
+        `spotdl sync {filename}.spotdl`
+
+- `meta`: Updates metadata for the provided song files.
+
+</details>
 
 ## Music Sourcing and Audio Quality
 
@@ -120,19 +125,13 @@ spotDL uses YouTube as a source for music downloads. This method is used to avoi
 
 spotDL downloads music from YouTube and is designed to always download the highest possible bitrate; which is 128 kbps for regular users and 256 kbps for YouTube Music premium users.
 
-Check the [Audio Formats](usage.md#audio-formats-and-quality) page for more info.
+Check the [Audio Formats](docs/usage.md#audio-formats-and-quality) page for more info.
 
 ## Contributing
 
-Interested in contributing? Check out our [CONTRIBUTING.md](CONTRIBUTING.md) to find
+Interested in contributing? Check out our [CONTRIBUTING.md](docs/CONTRIBUTING.md) to find
 resources around contributing along with a guide on how to set up a development environment.
-
-### Join our amazing community as a code contributor
-
-<a href="https://github.com/spotDL/spotify-downloader/graphs/contributors">
-  <img class="dark-light" src="https://contrib.rocks/image?repo=spotDL/spotify-downloader&anon=0&columns=25&max=100&r=true" />
-</a>
 
 ## License
 
-This project is Licensed under the [MIT](https://github.com/spotDL/spotify-downloader/blob/master/LICENSE) License.
+This project is Licensed under the [MIT](/LICENSE) License.
