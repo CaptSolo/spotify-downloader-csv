@@ -27,10 +27,6 @@ ___________________________________________________
 
 ## Installation
 
-Refer to the [Installation Guide](docs/installation.md) for more details.
-
-### Install from GitHub (Recommended Method)
-
 Install this package from GitHub:
 
 ```bash
