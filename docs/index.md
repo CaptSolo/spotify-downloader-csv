@@ -11,8 +11,7 @@
 **spotDL** finds songs from Spotify playlists on YouTube and downloads them - along with album art, lyrics and metadata.
 
 [![MIT License](https://img.shields.io/github/license/spotdl/spotify-downloader?color=44CC11&style=flat-square)](https://github.com/spotDL/spotify-downloader/blob/master/LICENSE)
-[![PyPI version](https://img.shields.io/pypi/pyversions/spotDL?color=%2344CC11&style=flat-square)](https://pypi.org/project/spotdl/)
-[![PyPi downloads](https://img.shields.io/pypi/dw/spotDL?label=downloads@pypi&color=344CC11&style=flat-square)](https://pypi.org/project/spotdl/)
+[![Python version](https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square)](https://www.python.org/)
 ![Contributors](https://img.shields.io/github/contributors/spotDL/spotify-downloader?style=flat-square)
 [![Discord](https://img.shields.io/discord/771628785447337985?label=discord&logo=discord&style=flat-square)](https://discord.gg/xCa23pwJWY)
 
@@ -23,12 +22,22 @@
 
 Refer to our [Installation Guide](installation.md) for more details.
 
-### Python (Recommended Method)
+### Install from GitHub (Recommended Method)
 
-- _spotDL_ can be installed by running `pip install spotdl`.
-- To update spotDL run `pip install --upgrade spotdl`
+> This package is not available on PyPI. Install directly from GitHub.
 
-  > On some systems you might have to change `pip` to `pip3`.
+```bash
+git clone https://github.com/spotDL/spotify-downloader && cd spotify-downloader
+pip install uv
+uv sync
+```
+
+To update, pull the latest changes and re-sync:
+
+```bash
+git pull
+uv sync
+```
 
 ### Other options
 
@@ -36,8 +45,6 @@ Refer to our [Installation Guide](installation.md) for more details.
     - Download the latest version from the [Releases Tab](https://github.com/spotDL/spotify-downloader/releases).
 - On Termux
     - `curl -L https://raw.githubusercontent.com/spotDL/spotify-downloader/master/scripts/termux.sh | sh`
-- Arch
-    - There is an [Arch User Repository (AUR) package](https://aur.archlinux.org/packages/spotdl/) for spotDL.
 - Docker
     - Build image:
 
@@ -52,7 +59,7 @@ Refer to our [Installation Guide](installation.md) for more details.
       docker run --rm -v $(pwd):/music spotdl download [trackUrl]
       ```
 
-- Build from source
+- Build standalone executable
 
     ```bash
     git clone https://github.com/spotDL/spotify-downloader && cd spotify-downloader

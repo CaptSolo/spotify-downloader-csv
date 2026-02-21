@@ -4,9 +4,9 @@ spotDL is a free and open-source tool that downloads your Spotify playlists & mu
 
 > **The fastest, easiest, and most accurate command-line music downloader**
 
-## Install via Python
+## Install from GitHub
 
-> This is our recommended installation method.
+> This is our recommended installation method. spotDL is not available on PyPI.
 
 If you are on Windows, install Visual C++ Redistributable (link below) and then proceed to
 install Python & FFmpeg.
@@ -15,7 +15,7 @@ install Python & FFmpeg.
 
 - [Visual C++ 2019 redistributable](https://docs.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022)
   (on Windows)
-- Python 3.7 or above (added to PATH)
+- Python 3.10 or above (added to PATH)
 - FFmpeg 4.2 or above (added to PATH)
 
 ### Install Python to PATH
@@ -33,12 +33,21 @@ When installing [Python](https://python.org/), ensure to select "**Add to PATH**
 
 First, open a terminal. On Windows: Command Prompt, macOS: "Terminal", *UNIX: Bash or Zsh.
 
-Verify you have installed Python correctly via `python -V`. Ensure you have v3.7 or greater.
+Verify you have installed Python correctly via `python -V`. Ensure you have v3.10 or greater.
 
-Next, install spotDL by typing the following:
+Next, clone the repository and install spotDL:
 
 ```shell
-pip install spotdl
+git clone https://github.com/spotDL/spotify-downloader && cd spotify-downloader
+pip install uv
+uv sync
+```
+
+To update, pull the latest changes and re-sync:
+
+```shell
+git pull
+uv sync
 ```
 
 ### Installing FFmpeg
@@ -92,22 +101,6 @@ Docker documentation: <https://docs.docker.com/>
 - Download a song:
   `docker run --rm -v $(pwd):/music spotdl download https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b`
 
-### Docker Hub Image
-
-- Pull docker image from Docker hub: `docker pull spotdl/spotify-downloader`
-
-- Download a song using Docker image:
-  `docker run --rm -v $(pwd):/music spotdl/spotify-downloader download https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b`
-
-- Create a Docker container
-
-```
-docker create \
-  --name=spotdl \
-  -v <path to data>:/music \
-  spotdl/spotify-downloader
-```
-
 ### Docker Compose
 
 - Create a container using Docker Compose: `docker-compose up --no-start`
@@ -120,10 +113,6 @@ docker create \
 
 We have a dedicated Termux installation script:
 `curl -L https://raw.githubusercontent.com/spotDL/spotify-downloader/master/scripts/termux.sh | sh`
-
-### Arch User Repository (AUR) package
-
-[You can find the AUR Package here](https://aur.archlinux.org/packages/spotdl)
 
 ## Where does spotDL download songs?
 
