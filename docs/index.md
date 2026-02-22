@@ -123,10 +123,10 @@ spotDL downloads music from YouTube and is designed to always download the highe
 
 Check the [Audio Formats](docs/usage.md#audio-formats-and-quality) page for more info.
 
-## Contributing
+## Credits
 
-Interested in contributing? Check out our [CONTRIBUTING.md](docs/CONTRIBUTING.md) to find
-resources around contributing along with a guide on how to set up a development environment.
+This version of `spotdl` is built on the excellent work of `spotdl` developers and community:
+- [spotDL - spotify-downloader](https://github.com/spotDL/spotify-downloader)
 
 ## License
 
