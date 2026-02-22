@@ -19,7 +19,7 @@ uv sync
 
 ## Exporting a Spotify Playlist as CSV
 
-This section describes how to export a Spotify playlist as CSV using Chosic. CSV files exported using Exportify may also work.
+This section describes how to export a Spotify playlist as CSV using Chosic.
 
 1. Go to [Chosic Spotify Playlist Analyzer](https://www.chosic.com/spotify-playlist-analyzer/)
 2. Paste your Spotify playlist URL and click Analyze
