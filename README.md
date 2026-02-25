@@ -22,6 +22,8 @@ ___________________________________________________
 
 *See [USAGE.md](USAGE.md) for more information about using it.*
 
+*If installation instructions do not work for you or require improvements, please open a new issue about it.*
+
 ___________________________________________________
 
 
@@ -48,8 +50,7 @@ uv sync
 FFmpeg is required for spotDL. If using FFmpeg only for spotDL, you can simply install FFmpeg to your spotDL installation directory:
 `spotdl --download-ffmpeg`
 
-We recommend the above option, but if you want to install FFmpeg system-wide,
-follow these instructions
+If you want to install FFmpeg system-wide, follow these instructions:
 
 - [Windows Tutorial](https://windowsloop.com/install-ffmpeg-windows-10/)
 - OSX - `brew install ffmpeg`
@@ -60,27 +61,21 @@ follow these instructions
 Using SpotDL without options:
 
 ```sh
-spotdl [urls]
-```
-
-You can run _spotDL_ as a package if running it as a script doesn't work:
-
-```sh
-python -m spotdl [urls]
+uv run spotdl [urls]
 ```
 
 General usage:
 
 ```sh
-spotdl [operation] [options] QUERY
+uv run spotdl [operation] [options] QUERY
 ```
 
 There are different **operations** spotDL can perform. The _default_ is `download`, which simply downloads the songs from YouTube and embeds metadata.
 
-`spotdl download [CSV_file]` 
+`uv run spotdl download [CSV_file]` 
 
 The **query** for spotDL is usually a list of Spotify URLs, but for some operations like **sync**, only a single link or file is required.
-For a list of all **options** use ```spotdl -h```
+For a list of all **options** use ```uv run spotdl -h```
 
 <details>
 <summary style="font-size:1em"><strong>Supported operations</strong></summary>
