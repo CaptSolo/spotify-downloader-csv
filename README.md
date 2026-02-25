@@ -38,6 +38,12 @@ git clone https://github.com/CaptSolo/spotify-downloader-csv/ && cd spotify-down
 uv sync
 ```
 
+If you do not have `git` installed you can also download [spotify-downloader-csv code](https://github.com/CaptSolo/spotify-downloader-csv/) as a ZIP file (by clicking the `Download ZIP` link) and unarchive it. Then install spotdl:
+
+```
+uv sync
+```
+
 To update, pull the latest changes and re-sync:
 
 ```bash
