@@ -63,6 +63,8 @@ def parse_csv(file_path: str) -> List[Song]:
         if reader.fieldnames is None:
             raise CSVError(f"CSV file has no headers: {file_path}")
 
+        reader.fieldnames = [name.strip() for name in reader.fieldnames]
+
         missing = REQUIRED_COLUMNS - set(reader.fieldnames)
         if missing:
             raise CSVError(
