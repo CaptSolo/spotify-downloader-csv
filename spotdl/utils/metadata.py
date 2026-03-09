@@ -13,6 +13,9 @@ embed_metadata(
 import base64
 import logging
 import re
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -44,6 +47,7 @@ from mutagen.wave import WAVE
 
 from spotdl.types.song import Song
 from spotdl.utils.config import GlobalConfig
+from spotdl.utils.ffmpeg import get_ffmpeg_path
 from spotdl.utils.formatter import to_ms
 from spotdl.utils.lrc import remomve_lrc
 
@@ -158,6 +162,71 @@ MP3_TO_SONG = {
 }
 
 LRC_REGEX = re.compile(r"(\[\d{2}:\d{2}.\d{2,3}\])")
+
+
+def _get_cover_ffmpeg() -> Optional[str]:
+    """
+    Resolve an ffmpeg executable for image processing.
+    """
+
+    ffmpeg_path = shutil.which("ffmpeg")
+    if ffmpeg_path:
+        return ffmpeg_path
+
+    local_ffmpeg = get_ffmpeg_path()
+
+    return str(local_ffmpeg) if local_ffmpeg else None
+
+
+def download_cover_data(cover_url: str) -> Optional[bytes]:
+    """
+    Download and normalize cover art to a square JPEG when possible.
+    """
+
+    try:
+        cover_data = requests.get(
+            cover_url,
+            timeout=10,
+            proxies=GlobalConfig.get_parameter("proxies"),
+        ).content
+    except Exception:
+        return None
+
+    ffmpeg_path = _get_cover_ffmpeg()
+    if ffmpeg_path is None:
+        return cover_data
+
+    try:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            input_file = Path(temp_dir) / "cover_input"
+            output_file = Path(temp_dir) / "cover_output.jpg"
+            input_file.write_bytes(cover_data)
+
+            subprocess.run(
+                [
+                    ffmpeg_path,
+                    "-y",
+                    "-i",
+                    str(input_file),
+                    "-vf",
+                    "crop=min(iw\\,ih):min(iw\\,ih)",
+                    "-frames:v",
+                    "1",
+                    "-q:v",
+                    "2",
+                    str(output_file),
+                ],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+
+            if output_file.exists():
+                return output_file.read_bytes()
+    except Exception:
+        return cover_data
+
+    return cover_data
 
 
 def embed_metadata(
@@ -289,13 +358,8 @@ def embed_cover(audio_file, song: Song, encoding: str):
         return audio_file
 
     # Try to download the cover art
-    try:
-        cover_data = requests.get(
-            song.cover_url,
-            timeout=10,
-            proxies=GlobalConfig.get_parameter("proxies"),
-        ).content
-    except Exception:
+    cover_data = download_cover_data(song.cover_url)
+    if cover_data is None:
         return audio_file
 
     # Create the image object for the file type
@@ -617,15 +681,17 @@ def embed_wav_file(output_file: Path, song: Song):
         )
 
     if song.cover_url:
-        try:
-            cover_data = requests.get(song.cover_url, timeout=10).content
+        cover_data = download_cover_data(song.cover_url)
+        if cover_data is not None:
             audio.tags.add(  # type: ignore
                 APIC(
-                    encoding=3, mime="image/jpeg", type=3, desc="Cover", data=cover_data
+                    encoding=3,
+                    mime="image/jpeg",
+                    type=3,
+                    desc="Cover",
+                    data=cover_data,
                 )
             )
-        except Exception:
-            pass
 
     if song.lyrics:
         # Check if the lyrics are in lrc format

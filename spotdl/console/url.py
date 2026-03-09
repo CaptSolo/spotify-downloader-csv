@@ -38,13 +38,12 @@ def url(
 
     def process_song(song: Song):
         try:
-            data = downloader.search(song)
+            data, audio_provider, _result = downloader.search_result(song)
             if data is None:
                 logger.error("Could not find a match for %s", song.display_name)
 
                 return None
 
-            audio_provider = downloader.audio_providers[0]
             download_url = audio_provider.get_download_metadata(data)["original_url"]
 
             print(download_url)

@@ -2,13 +2,16 @@
 YTMusic module for downloading and searching songs.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from ytmusicapi import YTMusic
 
 from spotdl.providers.audio.base import ISRC_REGEX, AudioProvider
 from spotdl.types.result import Result
-from spotdl.utils.formatter import parse_duration
+from spotdl.types.song import Song
+from spotdl.utils.downloader import pick_thumbnail_url
+from spotdl.utils.formatter import create_song_title, parse_duration
+from spotdl.utils.matching import order_results
 
 __all__ = ["YouTubeMusic"]
 
@@ -87,7 +90,97 @@ class YouTubeMusic(AudioProvider):
                         if result.get("album")
                         else None
                     ),
+                    album_id=(
+                        result.get("album", {}).get("id")
+                        if result.get("album")
+                        else None
+                    ),
                 )
             )
 
         return results
+
+    def get_album_cover_url(self, album_id: str) -> Optional[str]:
+        """
+        Resolve cover art for a YouTube Music album.
+
+        ### Arguments
+        - album_id: Album browse ID.
+
+        ### Returns
+        - A square album-art URL if available.
+        """
+
+        if not album_id:
+            return None
+
+        album = self.client.get_album(album_id)
+
+        return pick_thumbnail_url(album.get("thumbnails"))
+
+    def _find_cover_album_id(self, song: Song) -> Optional[str]:
+        """
+        Search YouTube Music song results specifically for album art resolution.
+        """
+
+        search_terms = []
+        if song.isrc:
+            search_terms.append(song.isrc)
+
+        title_query = create_song_title(song.name, song.artists).lower()
+        if title_query not in search_terms:
+            search_terms.append(title_query)
+
+        for search_term in search_terms:
+            song_results = [
+                result
+                for result in self.get_results(
+                    search_term,
+                    filter="songs",
+                    ignore_spelling=True,
+                    limit=10,
+                )
+                if result.album_id
+            ]
+            if not song_results:
+                continue
+
+            if len(song_results) == 1:
+                return song_results[0].album_id
+
+            ordered_results = order_results(song_results, song, self.search_query)
+            if ordered_results:
+                best_result, _score = self.get_best_result(ordered_results)
+                if best_result.album_id:
+                    return best_result.album_id
+
+            return song_results[0].album_id
+
+        return None
+
+    def get_cover_url(
+        self, song: Song, result: Optional[Result] = None
+    ) -> Optional[str]:
+        """
+        Resolve cover art for a song via its YouTube Music album metadata.
+
+        ### Arguments
+        - song: Song object.
+        - result: Optional matched search result to reuse.
+
+        ### Returns
+        - A square album-art URL if available.
+        """
+
+        tried_album_ids = set()
+        if result and result.album_id:
+            tried_album_ids.add(result.album_id)
+            cover_url = self.get_album_cover_url(result.album_id)
+            if cover_url:
+                return cover_url
+
+        searched_album_id = self._find_cover_album_id(song)
+        if searched_album_id and searched_album_id not in tried_album_ids:
+            return self.get_album_cover_url(searched_album_id)
+
+        return None
