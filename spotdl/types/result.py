@@ -37,6 +37,7 @@ class Result:
     views: Optional[int] = None
     explicit: Optional[bool] = None
     album: Optional[str] = None
+    album_id: Optional[str] = None
     year: Optional[int] = None
     track_number: Optional[int] = None
     genre: Optional[str] = None

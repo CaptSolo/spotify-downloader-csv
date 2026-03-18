@@ -28,6 +28,7 @@ from spotdl.providers.audio import (
 )
 from spotdl.providers.lyrics import AzLyrics, Genius, LyricsProvider, MusixMatch, Synced
 from spotdl.types.options import DownloaderOptionalOptions, DownloaderOptions
+from spotdl.types.result import Result
 from spotdl.types.song import Song
 from spotdl.utils.archive import Archive
 from spotdl.utils.config import (
@@ -39,6 +40,7 @@ from spotdl.utils.config import (
     modernize_settings,
 )
 from spotdl.utils.ffmpeg import FFmpegError, convert, get_ffmpeg_path
+from spotdl.utils.downloader import find_musicbrainz_cover_url
 from spotdl.utils.formatter import create_file_name
 from spotdl.utils.lrc import generate_lrc
 from spotdl.utils.m3u import gen_m3u_files
@@ -212,6 +214,8 @@ class Downloader:
                 )
             )
 
+        self._cover_art_provider: Optional[YouTubeMusic] = None
+
         # Initialize list of errors
         self.errors: List[str] = []
 
@@ -362,6 +366,58 @@ class Downloader:
 
             return await self.loop.run_in_executor(None, self.search_and_download, song)
 
+    def _get_cover_art_provider(self) -> YouTubeMusic:
+        """
+        Get a YouTube Music provider instance for album-art lookups.
+        """
+
+        if self._cover_art_provider is not None:
+            return self._cover_art_provider
+
+        existing_provider = next(
+            (
+                provider
+                for provider in self.audio_providers
+                if isinstance(provider, YouTubeMusic)
+            ),
+            None,
+        )
+        if existing_provider is not None:
+            self._cover_art_provider = existing_provider
+            return existing_provider
+
+        self._cover_art_provider = YouTubeMusic(
+            output_format=self.settings["format"],
+            cookie_file=self.settings["cookie_file"],
+            search_query=self.settings["search_query"],
+            filter_results=self.settings["filter_results"],
+            yt_dlp_args=self.settings["yt_dlp_args"],
+        )
+
+        return self._cover_art_provider
+
+    def search_result(self, song: Song) -> Tuple[str, AudioProvider, Result]:
+        """
+        Search for a song using all available providers and return the match object.
+
+        ### Arguments
+        - song: The song to search for.
+
+        ### Returns
+        - Tuple of download URL, audio provider, and matched result.
+        """
+
+        for audio_provider in self.audio_providers:
+            result = audio_provider.search_result(
+                song, self.settings["only_verified_results"]
+            )
+            if result:
+                return result.url, audio_provider, result
+
+            logger.debug("%s failed to find %s", audio_provider.name, song.display_name)
+
+        raise LookupError(f"No results found for song: {song.display_name}")
+
     def search(self, song: Song) -> str:
         """
         Search for a song using all available providers.
@@ -370,17 +426,35 @@ class Downloader:
         - song: The song to search for.
 
         ### Returns
-        - tuple with download url and audio provider if successful.
+        - Download URL if successful.
         """
 
-        for audio_provider in self.audio_providers:
-            url = audio_provider.search(song, self.settings["only_verified_results"])
-            if url:
-                return url
+        return self.search_result(song)[0]
 
-            logger.debug("%s failed to find %s", audio_provider.name, song.display_name)
+    def _resolve_cover_url(
+        self, song: Song, matched_result: Optional[Result] = None
+    ) -> Optional[str]:
+        """
+        Resolve the best available cover art for a song.
+        """
 
-        raise LookupError(f"No results found for song: {song.display_name}")
+        if song.cover_url:
+            return song.cover_url
+
+        try:
+            cover_url = self._get_cover_art_provider().get_cover_url(
+                song, matched_result
+            )
+            if cover_url:
+                return cover_url
+        except Exception as exception:
+            logger.debug(
+                "Failed to resolve YouTube Music album art for %s: %s",
+                song.display_name,
+                exception,
+            )
+
+        return find_musicbrainz_cover_url(song)
 
     def search_lyrics(self, song: Song) -> Optional[str]:
         """
@@ -631,10 +705,14 @@ class Downloader:
 
             # Create the output directory if it doesn't exist
             output_file.parent.mkdir(parents=True, exist_ok=True)
+            matched_result = None
             if song.download_url is None:
-                download_url = self.search(song)
+                download_url, _, matched_result = self.search_result(song)
             else:
                 download_url = song.download_url
+
+            if song.cover_url is None:
+                song.cover_url = self._resolve_cover_url(song, matched_result)
 
             # Initialize audio downloader
             audio_downloader: Union[AudioProvider, Piped]
@@ -666,7 +744,7 @@ class Downloader:
                 download_url, download=True
             )
 
-            # Use YouTube thumbnail as cover art if song has no cover_url
+            # Fall back to the downloaded video's thumbnail if no album art was found.
             if song.cover_url is None and download_info is not None:
                 thumbnails = download_info.get("thumbnails", [])
                 if thumbnails:

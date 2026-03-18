@@ -10,6 +10,7 @@ import sys
 import time
 
 from spotdl.console.download import download
+from spotdl.console.cover import cover
 from spotdl.console.meta import meta
 from spotdl.console.save import save
 from spotdl.console.sync import sync
@@ -30,6 +31,7 @@ OPERATIONS = {
     "sync": sync,
     "save": save,
     "meta": meta,
+    "cover": cover,
     "url": url,
 }
 
