@@ -66,6 +66,8 @@ __all__ = [
     "embed_cover",
     "embed_lyrics",
     "get_file_metadata",
+    "remove_cover_file",
+    "update_cover_file",
 ]
 
 
@@ -362,6 +364,14 @@ def embed_cover(audio_file, song: Song, encoding: str):
     if cover_data is None:
         return audio_file
 
+    return _embed_cover_data(audio_file, cover_data, encoding)
+
+
+def _embed_cover_data(audio_file, cover_data: bytes, encoding: str):
+    """
+    Embed already-downloaded cover data into the given audio object.
+    """
+
     # Create the image object for the file type
     if encoding in ["flac", "ogg", "opus"]:
         picture = Picture()
@@ -402,6 +412,128 @@ def embed_cover(audio_file, song: Song, encoding: str):
         )
 
     return audio_file
+
+
+def update_cover_file(output_file: Path, song: Song) -> bool:
+    """
+    Replace only the embedded cover art for an existing audio file.
+
+    ### Arguments
+    - output_file: Path to the file whose cover should be updated.
+    - song: Song object containing the new `cover_url`.
+
+    ### Returns
+    - True if the cover was updated successfully, else False.
+    """
+
+    if not song.cover_url:
+        return False
+
+    cover_data = download_cover_data(song.cover_url)
+    if cover_data is None:
+        return False
+
+    encoding = output_file.suffix[1:]
+
+    try:
+        if encoding == "wav":
+            audio = WAVE(output_file)
+
+            if audio.tags is None:
+                audio.add_tags()
+
+            if "APIC:Cover" in audio.tags:
+                audio.tags.pop("APIC:Cover")
+
+            audio.tags.add(
+                APIC(
+                    encoding=3,
+                    mime="image/jpeg",
+                    type=3,
+                    desc="Cover",
+                    data=cover_data,
+                )
+            )
+            audio.save()
+            return True
+
+        if encoding == "mp3":
+            audio_file = ID3(str(output_file.resolve()))
+            audio_file = _embed_cover_data(audio_file, cover_data, encoding)
+            audio_file.save(v2_version=3)
+            return True
+
+        audio_file = File(str(output_file.resolve()), easy=False)
+
+        if audio_file is None:
+            raise MetadataError(f"Unrecognized file format for {output_file}")
+
+        audio_file = _embed_cover_data(audio_file, cover_data, encoding)
+        audio_file.save()
+        return True
+    except Exception as exc:
+        raise MetadataError(f"Unable to update cover art for {output_file}") from exc
+
+
+def remove_cover_file(output_file: Path) -> bool:
+    """
+    Remove embedded cover art from an existing audio file.
+
+    ### Arguments
+    - output_file: Path to the file whose cover should be removed.
+
+    ### Returns
+    - True if cover art was removed, else False.
+    """
+
+    encoding = output_file.suffix[1:]
+
+    try:
+        if encoding == "mp3":
+            tag_file = ID3(str(output_file.resolve()))
+            if not tag_file.getall("APIC"):
+                return False
+
+            tag_file.delall("APIC")
+            tag_file.save(v2_version=3)
+            return True
+
+        if encoding == "wav":
+            audio_file = WAVE(output_file)
+            if audio_file.tags is None or not audio_file.tags.getall("APIC"):
+                return False
+
+            audio_file.tags.delall("APIC")
+            audio_file.save()
+            return True
+
+        audio_file = File(str(output_file.resolve()), easy=False)
+
+        if audio_file is None:
+            raise MetadataError(f"Unrecognized file format for {output_file}")
+
+        if encoding == "m4a":
+            if M4A_TAG_PRESET["albumart"] not in audio_file:
+                return False
+
+            audio_file.pop(M4A_TAG_PRESET["albumart"])
+        elif encoding == "flac":
+            if not audio_file.pictures:
+                return False
+
+            audio_file.clear_pictures()
+        elif encoding in ["ogg", "opus"]:
+            if "metadata_block_picture" not in audio_file:
+                return False
+
+            audio_file.pop("metadata_block_picture")
+        else:
+            raise MetadataError(f"Unsupported file format for {output_file}")
+
+        audio_file.save()
+        return True
+    except Exception as exc:
+        raise MetadataError(f"Unable to remove cover art for {output_file}") from exc
 
 
 def embed_lyrics(audio_file, song: Song, encoding: str):

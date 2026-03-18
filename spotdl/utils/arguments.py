@@ -16,7 +16,7 @@ from spotdl.utils.logging import NAME_TO_LEVEL
 
 __all__ = ["OPERATIONS", "SmartFormatter", "parse_arguments"]
 
-OPERATIONS = ["download", "save", "web", "sync", "meta", "url"]
+OPERATIONS = ["download", "save", "web", "sync", "meta", "cover", "url"]
 
 
 class SmartFormatter(argparse.HelpFormatter):
@@ -60,6 +60,7 @@ def parse_main_options(parser: _ArgumentGroup):
             "web: Starts a web interface to simplify the download process.\n"
             "sync: Removes songs that are no longer present, downloads new ones\n"
             "meta: Update your audio files with metadata\n"
+            "cover: Refresh album cover art for existing audio files\n"
             "url: Get the download URL for songs\n\n"
         ),
     )
@@ -493,6 +494,14 @@ def parse_output_options(parser: _ArgumentGroup):
         help="skip downloading album art for meta operation",
     )
 
+    parser.add_argument(
+        "--remove",
+        dest="remove_cover",
+        action="store_const",
+        const=True,
+        help="Remove embedded cover art when using the cover operation.",
+    )
+
     # Ignore songs from a paticular album
     parser.add_argument(
         "--ignore-albums",
@@ -783,5 +792,13 @@ def parse_arguments() -> Namespace:
     # Create parser
     parser = create_parser()
 
-    # Parse arguments
+    # Parse arguments. Prefer intermixed parsing so options can appear
+    # naturally around positional query arguments, e.g. `spotdl cover --remove .`.
+    parse_intermixed = getattr(parser, "parse_intermixed_args", None)
+    if parse_intermixed is not None:
+        try:
+            return parse_intermixed()
+        except TypeError:
+            pass
+
     return parser.parse_args()

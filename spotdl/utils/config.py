@@ -329,6 +329,7 @@ DOWNLOADER_OPTIONS: DownloaderOptions = {
     "log_format": None,
     "redownload": False,
     "skip_album_art": False,
+    "remove_cover": False,
     "create_skip_file": False,
     "respect_skip_file": False,
     "sync_remove_lrc": False,
